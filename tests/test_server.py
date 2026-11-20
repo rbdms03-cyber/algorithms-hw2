@@ -1,5 +1,7 @@
 import http.client
 import threading
+from pathlib import Path
+from tempfile import TemporaryDirectory
 import unittest
 from urllib.parse import urlencode
 
@@ -37,6 +39,30 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn("용량", table)
         self.assertIn("버킷 0", table)
+
+    def test_server_defaults_to_linear_probing(self):
+        with TemporaryDirectory() as directory:
+            server = create_server(
+                "127.0.0.1",
+                0,
+                storage_path=Path(directory) / "urls.csv",
+            )
+            thread = threading.Thread(target=server.serve_forever)
+            thread.start()
+            connection = http.client.HTTPConnection(
+                "127.0.0.1", server.server_address[1], timeout=5
+            )
+            try:
+                connection.request("GET", "/table")
+                response = connection.getresponse()
+                table = response.read().decode("utf-8")
+                self.assertEqual(response.status, 200)
+                self.assertIn("선형 탐지", table)
+            finally:
+                connection.close()
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=5)
 
     def test_shorten_redirect_and_unknown_code(self):
         body = urlencode({"url": "https://example.com/a"})

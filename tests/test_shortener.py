@@ -1,3 +1,5 @@
+from pathlib import Path
+from tempfile import TemporaryDirectory
 import unittest
 
 from src.shortener import Shortener
@@ -50,6 +52,25 @@ class ShortenerTests(unittest.TestCase):
                     shortener.shorten("ftp://example.com")
                 with self.assertRaises(KeyError):
                     shortener.expand("missing")
+
+    def test_saved_urls_survive_restart_and_strategy_change(self):
+        with TemporaryDirectory() as directory:
+            storage_path = Path(directory) / "urls.csv"
+            original = Shortener(storage_path=storage_path)
+            first_url = "https://example.com/previous"
+            first_code = original.shorten(first_url)
+            second_url = "https://example.com/also-previous"
+            second_code = original.shorten(second_url)
+
+            restarted = Shortener(strategy="linear", storage_path=storage_path)
+
+            self.assertEqual(restarted.expand(first_code), first_url)
+            self.assertEqual(restarted.expand(second_code), second_url)
+            self.assertEqual(restarted.shorten(first_url), first_code)
+            self.assertEqual(
+                restarted.shorten("https://example.com/new"),
+                "3",
+            )
 
 
 if __name__ == "__main__":
