@@ -10,6 +10,7 @@ from src.linear_probing import LinearProbingHashTable
 
 CAPACITY = 1000
 LOAD_FACTORS = tuple(step / 10 for step in range(1, 10))
+REPOSITORY_URL = "https://github.com/rbdms03-cyber/algorithms-hw2"
 KEY_VALUES = random.Random(20261120).sample(range(2**32), int(CAPACITY * 0.9))
 MISSING_VALUES = random.Random(20261121).sample(range(2**32), int(CAPACITY * 0.9))
 
@@ -197,29 +198,35 @@ def _pdf_table(rows: list[tuple[float, ...]], page_y: float, start_column: int) 
 def _write_pdf(path: Path, rows: list[tuple[float, ...]]) -> None:
     pages = []
     successful = (
-        _pdf_text("Hash table comparison: successful searches", 60, 800, 16)
-        + _pdf_text("Setup: capacity 1000, same seeded keys, Horner hash, alpha 0.1 to 0.9.", 60, 780, 9)
-        + _pdf_text("Theory: chaining 1 + alpha/2; linear probing 0.5 * (1 + 1/(1-alpha)).", 60, 765, 9)
-        + _pdf_chart(rows, 575, (1, 5), (2, 6))
-        + _pdf_table(rows, 555, 1)
-        + _pdf_text("Successful searches: each probe is a visited chain node or table slot.", 60, 390, 9)
-        + _pdf_text("At alpha=0.9, measured chaining/linear costs are "
-                    f"{rows[-1][1]:.3f}/{rows[-1][5]:.3f}; expected approximations are "
-                    f"{rows[-1][2]:.3f}/{rows[-1][6]:.3f}.", 60, 373, 9)
-        + _pdf_text("Finite samples and key distribution explain small deviations from expectation.", 60, 356, 9)
+        _pdf_text(f"Repository: {REPOSITORY_URL}", 60, 824, 8)
+        + _pdf_text("Hash table comparison: successful searches", 60, 800, 16)
+        + _pdf_text("Methods: both use Horner h=(31*h+ord(c)) mod 1000.", 60, 780, 9)
+        + _pdf_text("Chaining stores collisions in bucket lists; linear probes next slots with wrap-around.", 60, 765, 9)
+        + _pdf_text("Setup: capacity 1000; alpha 0.1-0.9 by 0.1; keys seeded 20261120, misses 20261121.", 60, 750, 9)
+        + _pdf_text("At each alpha, n=100-900 hits and n distinct misses; a visited node/slot is one probe.", 60, 735, 9)
+        + _pdf_text("Theory: chaining 1 + alpha/2; linear probing 0.5 * (1 + 1/(1-alpha)).", 60, 720, 9)
+        + _pdf_chart(rows, 550, (1, 5), (2, 6))
+        + _pdf_table(rows, 530, 1)
+        + _pdf_text("Measured and theoretical successful-search costs are plotted above.", 60, 368, 9)
+        + _pdf_text("At alpha=0.9, success observed (chain/linear) is "
+                    f"{rows[-1][1]:.3f}/{rows[-1][5]:.3f}; theory is "
+                    f"{rows[-1][2]:.3f}/{rows[-1][6]:.3f}.", 60, 351, 9)
+        + _pdf_text("Finite samples and key distribution explain small deviations from theory.", 60, 334, 9)
     )
     unsuccessful = (
         _pdf_text("Hash table comparison: unsuccessful searches", 60, 800, 16)
         + _pdf_text("Theory: chaining alpha; linear probing 0.5 * (1 + 1/(1-alpha)^2).", 60, 780, 9)
-        + _pdf_text("For open addressing, the terminating empty slot is counted as a probe.", 60, 765, 9)
+        + _pdf_text("A miss includes the empty slot that terminates the search.", 60, 765, 9)
         + _pdf_chart(rows, 575, (3, 7), (4, 8))
         + _pdf_table(rows, 555, 3)
-        + _pdf_text("Linear probing rises sharply near alpha=1 due to primary clustering.", 60, 390, 9)
-        + _pdf_text("At alpha=0.9, measured chaining/linear costs are "
-                    f"{rows[-1][3]:.3f}/{rows[-1][7]:.3f}; expected approximations are "
-                    f"{rows[-1][4]:.3f}/{rows[-1][8]:.3f}.", 60, 373, 9)
-        + _pdf_text("Conclusion: chaining stays comparatively stable at high load; linear probing", 60, 356, 9)
-        + _pdf_text("is efficient at lower load but sensitive to clustering as free slots shrink.", 60, 343, 9)
+        + _pdf_text("As alpha approaches 1, long runs of occupied slots form (primary clustering).", 60, 390, 9)
+        + _pdf_text("A miss must cross a run and reach an empty slot; expected cost grows roughly as", 60, 373, 9)
+        + _pdf_text("0.5/(1-alpha)^2, so the cost rises sharply as free slots disappear.", 60, 356, 9)
+        + _pdf_text("At alpha=0.9, miss observed (chain/linear) is "
+                    f"{rows[-1][3]:.3f}/{rows[-1][7]:.3f}; theory is "
+                    f"{rows[-1][4]:.3f}/{rows[-1][8]:.3f}.", 60, 339, 9)
+        + _pdf_text("Agent mistake: /table omitted visited slots; test_linear_table_shows_visited_slots caught it.", 60, 318, 8)
+        + _pdf_text("The slot-path display was restored, then the full test suite passed.", 60, 303, 8)
     )
     pages.extend((successful, unsuccessful))
 
