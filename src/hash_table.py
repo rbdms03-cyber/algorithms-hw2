@@ -9,8 +9,8 @@ class HashTable:
             raise ValueError("initial_capacity must be positive")
         if not isinstance(max_load_factor, (int, float)):
             raise TypeError("max_load_factor must be numeric")
-        if not 0 < max_load_factor <= 1:
-            raise ValueError("max_load_factor must be greater than 0 and at most 1")
+        if max_load_factor <= 0:
+            raise ValueError("max_load_factor must be positive")
 
         self._buckets = [[] for _ in range(initial_capacity)]
         self._size = 0
@@ -58,6 +58,13 @@ class HashTable:
             if existing_key == key:
                 return True
         return False
+
+    def probe_count(self, key: str) -> int:
+        index = self.hash_index(key)
+        for probes, (existing_key, _) in enumerate(self._buckets[index], start=1):
+            if existing_key == key:
+                return probes
+        return len(self._buckets[index])
 
     def items(self) -> tuple[tuple[str, str], ...]:
         return tuple(entry for bucket in self._buckets for entry in bucket)
