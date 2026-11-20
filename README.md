@@ -21,12 +21,9 @@
 | --- | --- |
 | `SPEC.md` | URL 단축기, 해시 테이블, 경계 사례의 명세 |
 | `src/` · `tests/` | base62, 해시 테이블, 단축기와 웹 서버 및 테스트 |
-| `experiments/` | 적재율에 따른 탐색 비용 CSV와 SVG 생성 |
+| `experiments/` | 적재율에 따른 탐색 비용 CSV, SVG, PDF 보고서 |
 | `tools/catchup.sh` | 수업 중 놓친 단계를 따라잡는 스크립트 |
-| `Makefile` | `make test` · `make serve` · `make experiment` |
-
-정답 코드는 들어 있지 않습니다. 에이전트는 작업 공간의 파일을 읽으므로, 정답이
-옆에 있으면 그대로 베껴 와서 연습이 되지 않습니다.
+| `Makefile` | `make test` · `make serve` · `make experiment` · `make compare` |
 
 ## 명령
 
@@ -35,14 +32,19 @@
 | 하고 싶은 것 | 명령 |
 | --- | --- |
 | 테스트 | `make test` |
-| 웹 서버 (포트 8000) | `make serve` |
+| 웹 서버 (포트 8000) | `make serve` (`make serve STRATEGY=linear`로 방식 선택) |
 | 충돌 실험 | `make experiment` |
+| 두 해시 테이블 비교 | `make compare` |
 | 놓친 단계 따라잡기 | `sh tools/catchup.sh <단계 번호>` |
 
 `make experiment`는 `experiments/probe_results.csv`와
 `experiments/probe_experiment.svg`를 갱신합니다. Codespaces에서 휴대폰으로
 서버를 확인할 때는 포트 8000을 Public으로 설정하고, 확인을 마치면 서버를 끄고
 포트를 Private으로 되돌립니다.
+
+`make compare`는 연결 리스트와 선형 탐지를 같은 키로 비교해
+`experiments/table_comparison.csv`, `experiments/table_comparison.svg`,
+`experiments/table_comparison_report.pdf`(2쪽)를 생성합니다.
 
 외부 라이브러리는 쓰지 않습니다. Python 표준 모듈만으로 충분합니다.
 

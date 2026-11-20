@@ -31,6 +31,15 @@ class ShortenerTests(unittest.TestCase):
         with self.assertRaises(KeyError):
             Shortener().expand("unknown")
 
+    def test_both_collision_strategies_share_shortener_behavior(self):
+        for strategy in ("chaining", "linear"):
+            with self.subTest(strategy=strategy):
+                shortener = Shortener(strategy=strategy)
+                code = shortener.shorten("https://example.com/a")
+                self.assertEqual(code, "1")
+                self.assertEqual(shortener.expand(code), "https://example.com/a")
+                self.assertEqual(shortener.shorten("https://example.com/a"), code)
+
 
 if __name__ == "__main__":
     unittest.main()

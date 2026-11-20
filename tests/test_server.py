@@ -68,6 +68,35 @@ class ServerTests(unittest.TestCase):
         self.assertIn("h(key) =", table)
         self.assertIn("ord(", table)
 
+    def test_linear_table_shows_visited_slots(self):
+        server = create_server("127.0.0.1", 0, strategy="linear")
+        thread = threading.Thread(target=server.serve_forever)
+        thread.start()
+        connection = http.client.HTTPConnection(
+            "127.0.0.1", server.server_address[1], timeout=5
+        )
+        try:
+            connection.request(
+                "POST",
+                "/shorten",
+                urlencode({"url": "https://example.com/linear"}),
+                {"Content-Type": "application/x-www-form-urlencoded"},
+            )
+            response = connection.getresponse()
+            response.read()
+            connection.request("GET", "/table")
+            response = connection.getresponse()
+            page = response.read().decode("utf-8")
+            self.assertEqual(response.status, 200)
+            self.assertIn("선형 탐지", page)
+            self.assertIn("방문 슬롯", page)
+            self.assertIn("h(key) =", page)
+        finally:
+            connection.close()
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=5)
+
     def test_invalid_url_returns_bad_request_and_is_escaped(self):
         body = urlencode({"url": "ftp://example.com/?q=<script>"})
         status, _, page = self.request(

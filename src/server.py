@@ -40,8 +40,9 @@ def create_server(
     host: str = "0.0.0.0",
     port: int = 8000,
     shortener: Shortener | None = None,
+    strategy: str = "chaining",
 ) -> ThreadingHTTPServer:
-    active_shortener = shortener if shortener is not None else Shortener()
+    active_shortener = shortener if shortener is not None else Shortener(strategy)
 
     class ShortenerHandler(BaseHTTPRequestHandler):
         def _send_html(self, status: int, content: str) -> None:
@@ -55,13 +56,14 @@ def create_server(
         def _table_page(self) -> str:
             sections = []
             for table_number, table in enumerate(active_shortener.tables, start=1):
+                bucket_name = "슬롯" if table.strategy_name == "선형 탐지" else "버킷"
                 rows = [
-                    f"<h2>테이블 {table_number}</h2>"
+                    f"<h2>테이블 {table_number} ({escape(table.strategy_name)})</h2>"
                     f"<p>용량: {table.capacity}, 항목 수: {len(table)}, "
                     f"적재율: {table.load_factor:.3f}</p>"
                 ]
                 for bucket_index, bucket in enumerate(table.slots()):
-                    rows.append(f"<h3>버킷 {bucket_index}</h3>")
+                    rows.append(f"<h3>{bucket_name} {bucket_index}</h3>")
                     if not bucket:
                         rows.append("<p>(비어 있음)</p>")
                         continue
@@ -69,16 +71,27 @@ def create_server(
                     for position, (key, value) in enumerate(bucket, start=1):
                         escaped_key = escape(key)
                         escaped_value = escape(value)
+                        if bucket_name == "슬롯":
+                            visited = " → ".join(
+                                str(index) for index in table.probe_path(key)
+                            )
+                            search_detail = f"방문 슬롯 {visited}"
+                        else:
+                            visited_nodes = " → ".join(
+                                escape(node_key)
+                                for node_key, _ in bucket[:position]
+                            )
+                            search_detail = f"방문 노드 {visited_nodes}"
                         rows.append(
                             "<li>"
                             f"키 <code>{escaped_key}</code>, 값 <code>{escaped_value}</code>; "
-                            f"방문 노드 {position}; "
+                            f"{search_detail}; "
                             f"<code>{escape(_hash_explanation(key, table.capacity))}</code>"
                             "</li>"
                         )
                     rows.append("</ol>")
                 sections.append("".join(rows))
-            return _page("".join(sections), "연결 리스트 버킷과 탐색 근거")
+            return _page("".join(sections), "충돌 처리 방식과 탐색 근거")
 
         def do_GET(self) -> None:
             path = urlsplit(self.path).path
@@ -150,8 +163,9 @@ def create_server(
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run the URL shortener web server.")
     parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--strategy", choices=("chaining", "linear"), default="chaining")
     arguments = parser.parse_args()
-    server = create_server(port=arguments.port)
+    server = create_server(port=arguments.port, strategy=arguments.strategy)
     print(f"Serving on http://0.0.0.0:{arguments.port}")
     try:
         server.serve_forever()

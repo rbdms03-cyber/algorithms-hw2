@@ -7,7 +7,7 @@ class HashTable:
             raise TypeError("initial_capacity must be an integer")
         if initial_capacity < 1:
             raise ValueError("initial_capacity must be positive")
-        if not isinstance(max_load_factor, (int, float)):
+        if not isinstance(max_load_factor, (int, float)) or isinstance(max_load_factor, bool):
             raise TypeError("max_load_factor must be numeric")
         if max_load_factor <= 0:
             raise ValueError("max_load_factor must be positive")
@@ -23,6 +23,10 @@ class HashTable:
     @property
     def load_factor(self) -> float:
         return self._size / self.capacity
+
+    @property
+    def strategy_name(self) -> str:
+        return "연결 리스트"
 
     def hash_index(self, key: str) -> int:
         if not isinstance(key, str):
