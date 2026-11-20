@@ -35,10 +35,21 @@ class ShortenerTests(unittest.TestCase):
         for strategy in ("chaining", "linear"):
             with self.subTest(strategy=strategy):
                 shortener = Shortener(strategy=strategy)
-                code = shortener.shorten("https://example.com/a")
-                self.assertEqual(code, "1")
-                self.assertEqual(shortener.expand(code), "https://example.com/a")
-                self.assertEqual(shortener.shorten("https://example.com/a"), code)
+                first_url = "  https://example.com/a  "
+                first_code = shortener.shorten(first_url)
+                second_url = "https://example.com/b"
+                second_code = shortener.shorten(second_url)
+
+                self.assertEqual(first_code, "1")
+                self.assertEqual(shortener.expand(first_code), first_url.strip())
+                self.assertEqual(shortener.shorten(first_url), first_code)
+                self.assertNotEqual(first_code, second_code)
+                self.assertEqual(shortener.expand(second_code), second_url)
+
+                with self.assertRaises(ValueError):
+                    shortener.shorten("ftp://example.com")
+                with self.assertRaises(KeyError):
+                    shortener.expand("missing")
 
 
 if __name__ == "__main__":
