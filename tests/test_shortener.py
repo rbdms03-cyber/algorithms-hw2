@@ -53,6 +53,23 @@ class ShortenerTests(unittest.TestCase):
                 with self.assertRaises(KeyError):
                     shortener.expand("missing")
 
+    def test_strategy_choice_is_distinct_and_keeps_shared_codes(self):
+        shortener = Shortener(strategy="linear")
+        url = "https://example.com/selected"
+
+        linear_code = shortener.shorten(url, "linear")
+        self.assertEqual(shortener.shorten(url, "chaining"), linear_code)
+        chaining_table = shortener.tables_for("chaining")[0]
+        linear_table = shortener.tables_for("linear")[0]
+        self.assertEqual(chaining_table.strategy_name, "연결 리스트")
+        self.assertEqual(linear_table.strategy_name, "선형 탐지")
+
+        next_code = shortener.shorten("https://example.com/chaining", "chaining")
+        self.assertEqual(chaining_table.get("https://example.com/chaining"), next_code)
+        self.assertEqual(linear_table.get("https://example.com/chaining"), next_code)
+        with self.assertRaises(ValueError):
+            shortener.shorten("https://example.com/invalid", "unknown")
+
     def test_saved_urls_survive_restart_and_strategy_change(self):
         with TemporaryDirectory() as directory:
             storage_path = Path(directory) / "urls.csv"
@@ -67,6 +84,7 @@ class ShortenerTests(unittest.TestCase):
             self.assertEqual(restarted.expand(first_code), first_url)
             self.assertEqual(restarted.expand(second_code), second_url)
             self.assertEqual(restarted.shorten(first_url), first_code)
+            self.assertEqual(restarted.shorten(second_url, "chaining"), second_code)
             self.assertEqual(
                 restarted.shorten("https://example.com/new"),
                 "3",

@@ -1,4 +1,4 @@
-"""HTTP interface for the in-memory URL shortener."""
+"""HTTP interface for the persistent URL shortener."""
 
 import argparse
 from html import escape
@@ -66,15 +66,19 @@ def create_server(
             self.end_headers()
             self.wfile.write(body)
 
-        def _table_page(self) -> str:
-            table = active_shortener.tables[0]
+        def _table_page(self, strategy: str) -> str:
+            table = active_shortener.tables_for(strategy)[0]
             bucket_name = "슬롯" if table.strategy_name == "선형 탐지" else "버킷"
+            strategy_name = active_shortener.strategy_name(strategy)
             sections = [
-                "<p>버킷의 연결 리스트 노드를 화살표로 잇고, 각 노드의 해시 과정을 "
-                "펼쳐 볼 수 있습니다.</p>"
-                f"<h2>URL → 짧은 코드 ({escape(table.strategy_name)})</h2>"
+                "<p>각 버킷 또는 슬롯의 항목과 해시 계산 과정을 확인할 수 있습니다.</p>"
+                f"<h2>URL → 짧은 코드</h2>"
+                f"<p>해시 충돌 처리 방식: {escape(strategy_name)}</p>"
                 f"<p>용량: {table.capacity}, 항목 수: {len(table)}, "
                 f"적재율: {table.load_factor:.3f}</p>"
+                '<p>방식 보기: <a href="/table?strategy=chaining">'
+                "개별 체이닝</a> | "
+                '<a href="/table?strategy=linear">선형 탐지</a></p>'
             ]
             for bucket_index, bucket in enumerate(table.slots()):
                 sections.append(
@@ -120,19 +124,42 @@ def create_server(
             return _page("".join(sections))
 
         def do_GET(self) -> None:
-            path = urlsplit(self.path).path
+            parsed_path = urlsplit(self.path)
+            path = parsed_path.path
             if path == "/":
+                selected_strategy = active_shortener.strategy
+                chaining_selected = (
+                    " selected" if selected_strategy == "chaining" else ""
+                )
+                linear_selected = (
+                    " selected" if selected_strategy == "linear" else ""
+                )
                 self._send_html(
                     200,
                     _page(
                         '<form action="/shorten" method="post">'
                         '<label>원본 URL <input type="url" name="url" required></label>'
+                        '<label>해시 충돌 처리 방식 <select name="strategy">'
+                        f'<option value="chaining"{chaining_selected}>'
+                        "개별 체이닝</option>"
+                        f'<option value="linear"{linear_selected}>'
+                        "선형 탐지</option></select></label>"
                         '<button type="submit">짧게 만들기</button></form>'
+                        f"<p>현재 기본 방식: "
+                        f"{escape(active_shortener.strategy_name(selected_strategy))}"
+                        "</p>"
                     ),
                 )
                 return
             if path == "/table":
-                self._send_html(200, self._table_page())
+                query = parse_qs(parsed_path.query, keep_blank_values=True)
+                strategy = query.get("strategy", [active_shortener.strategy])[0]
+                try:
+                    table_page = self._table_page(strategy)
+                except ValueError as error:
+                    self._send_html(400, _page("", str(error)))
+                    return
+                self._send_html(200, table_page)
                 return
             if path.startswith("/r/"):
                 code = unquote(path[len("/r/") :])
@@ -168,9 +195,11 @@ def create_server(
             except UnicodeDecodeError:
                 self._send_html(400, _page("", "요청은 UTF-8이어야 합니다."))
                 return
-            url = parse_qs(form, keep_blank_values=True).get("url", [""])[0]
+            form_values = parse_qs(form, keep_blank_values=True)
+            url = form_values.get("url", [""])[0]
+            strategy = form_values.get("strategy", [active_shortener.strategy])[0]
             try:
-                code = active_shortener.shorten(url)
+                code = active_shortener.shorten(url, strategy)
             except ValueError as error:
                 self._send_html(400, _page("", str(error)))
                 return
@@ -179,9 +208,13 @@ def create_server(
                 return
 
             result = (
+                f"<p>사용한 해시 충돌 처리 방식: "
+                f"{escape(active_shortener.strategy_name(strategy))}</p>"
                 f"<p>짧은 코드: <code>{escape(code)}</code></p>"
                 f'<p><a href="/r/{escape(code)}">단축 링크 열기</a></p>'
                 f"<p>원본: <code>{escape(url.strip())}</code></p>"
+                f'<p><a href="/table?strategy={escape(strategy)}">'
+                "선택한 방식의 해시 테이블 보기</a></p>"
                 '<p><a href="/">다른 URL 입력</a></p>'
             )
             self._send_html(200, _page(result))
