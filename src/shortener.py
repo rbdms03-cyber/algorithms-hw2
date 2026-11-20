@@ -39,6 +39,8 @@ class Shortener:
     def _is_valid_url(url: str) -> bool:
         if not url:
             return False
+        if any(ord(character) < 32 or ord(character) == 127 for character in url):
+            return False
         try:
             parts = urlsplit(url)
             hostname = parts.hostname
