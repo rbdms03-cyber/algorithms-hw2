@@ -1,10 +1,14 @@
-# 명세: URL 단축기
+# 명세 초안: URL 단축기
+
+> 검토를 위한 초안이다. 구현에 착수하기 전에 입력 규칙과 경계 사례를 확인하고
+> 필요한 내용을 직접 수정한다.
 
 ## 1. 무엇을 만드는가
 
 사용자가 HTTP 또는 HTTPS URL을 입력하면 짧은 코드를 만들고, 그 코드로 원래
-URL을 찾는 프로그램이다. 자료구조와 base62 변환은 직접 구현하며 Python의
-`dict`, `set`, 내장 `hash()`는 `src/`에서 사용하지 않는다.
+URL을 찾는 프로그램이다. URL과 코드의 저장은 직접 구현한 해시 테이블로 처리한다.
+해시 테이블과 base62 변환은 직접 구현하며 Python의 `dict`, `set`, 내장 `hash()`는
+`src/`에서 사용하지 않는다.
 
 ## 2. base62 인코딩
 
@@ -16,10 +20,11 @@ URL을 찾는 프로그램이다. 자료구조와 base62 변환은 직접 구현
 
 ## 3. 해시 테이블
 
-- `src/hash_table.py`의 연결 리스트 방식 `HashTable`을 기본으로 사용한다.
-- 키는 문자열이며 해시는 각 문자의 코드 포인트를 사용하는 다항식
-  `h = (h * 31 + ord(character)) % capacity`로 계산한다. 충돌은 버킷 안의
-  연결 리스트로 처리한다.
+- `src/hash_table.py`의 `HashTable`은 문자열 키를 저장하고, 충돌은 버킷 안의
+  개별 연결 리스트(separate chaining)로 처리한다.
+- 호너 방식으로 해시를 계산한다. `h₀ = 0`에서 시작해 키의 각 문자 `cᵢ`에 대해
+  `hᵢ = (31 × hᵢ₋₁ + ord(cᵢ)) mod capacity`를 계산하며, 최종 `hₙ`이 버킷
+  인덱스다. Python 내장 `hash()`는 쓰지 않는다.
 - 기본 용량은 8이고 적재율이 0.75를 초과하면 용량을 두 배로 늘린다.
 - `put(key, value)`, `get(key)`, `contains(key)`, `items()`, `slots()`와
   `capacity`, `load_factor`를 제공한다. 없는 키를 `get`하면 `KeyError`다.
