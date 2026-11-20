@@ -32,7 +32,7 @@
 | 하고 싶은 것 | 명령 |
 | --- | --- |
 | 테스트 | `make test` |
-| 웹 서버 (포트 8000) | `make serve` (기본 선형 탐지, `make serve STRATEGY=chaining`으로 방식 선택) |
+| 웹 서버 (포트 8000) | `make serve` (기본 선형 탐지; 입력 폼에서도 방식 선택 가능) |
 | 충돌 실험 | `make experiment` |
 | 두 해시 테이블 비교 | `make compare` |
 | 놓친 단계 따라잡기 | `sh tools/catchup.sh <단계 번호>` |
@@ -48,7 +48,9 @@ Codespaces에서 휴대폰으로
 `experiments/table_comparison_report.pdf`(2쪽)를 생성합니다.
 
 웹 서버가 만든 URL 매핑은 `data/urls.csv`에 저장되어 서버를 다시 시작하거나
-충돌 처리 방식을 바꿔도 유지됩니다. 이 사용자 데이터 파일은 Git에 커밋되지 않습니다.
+충돌 처리 방식을 바꿔도 유지됩니다. 입력 폼과 `/table`에서 개별 체이닝/선형 탐지를
+각각 선택할 수 있고, 결과에도 사용한 방식을 표시합니다. 이 사용자 데이터 파일은
+Git에 커밋되지 않습니다.
 
 외부 라이브러리는 쓰지 않습니다. Python 표준 모듈만으로 충분합니다.
 

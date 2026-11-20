@@ -18,14 +18,13 @@ class Shortener:
         strategy: str = "chaining",
         storage_path: str | Path | None = None,
     ):
-        if strategy == "chaining":
-            table_factory = HashTable
-        elif strategy == "linear":
-            table_factory = LinearProbingHashTable
-        else:
+        if strategy not in ("chaining", "linear"):
             raise ValueError("strategy must be 'chaining' or 'linear'")
-        self._url_to_code = table_factory()
-        self._code_to_url = table_factory()
+        self._strategy = strategy
+        self._chaining_url_to_code = HashTable()
+        self._chaining_code_to_url = HashTable()
+        self._linear_url_to_code = LinearProbingHashTable()
+        self._linear_code_to_url = LinearProbingHashTable()
         self._next_id = 1
         self._lock = RLock()
         self._storage_path = Path(storage_path) if storage_path is not None else None
@@ -35,18 +34,39 @@ class Shortener:
 
     @property
     def tables(self) -> tuple[Table, Table]:
-        return self._url_to_code, self._code_to_url
+        return self.tables_for(self._strategy)
 
-    def shorten(self, url: str) -> str:
+    @property
+    def strategy(self) -> str:
+        return self._strategy
+
+    def tables_for(self, strategy: str) -> tuple[Table, Table]:
+        if strategy == "chaining":
+            return self._chaining_url_to_code, self._chaining_code_to_url
+        if strategy == "linear":
+            return self._linear_url_to_code, self._linear_code_to_url
+        raise ValueError("strategy must be 'chaining' or 'linear'")
+
+    @staticmethod
+    def strategy_name(strategy: str) -> str:
+        if strategy == "chaining":
+            return "개별 체이닝"
+        if strategy == "linear":
+            return "선형 탐지"
+        raise ValueError("strategy must be 'chaining' or 'linear'")
+
+    def shorten(self, url: str, strategy: str | None = None) -> str:
         if not isinstance(url, str):
             raise TypeError("url must be a string")
         normalized_url = url.strip()
         if not self._is_valid_url(normalized_url):
             raise ValueError("url must be an absolute HTTP or HTTPS URL")
+        selected_strategy = strategy if strategy is not None else self._strategy
+        url_table, _ = self.tables_for(selected_strategy)
 
         with self._lock:
-            if self._url_to_code.contains(normalized_url):
-                return self._url_to_code.get(normalized_url)
+            if url_table.contains(normalized_url):
+                return url_table.get(normalized_url)
 
             code = encode(self._next_id)
             if self._storage_path is not None:
@@ -55,13 +75,18 @@ class Shortener:
                 ) as storage_file:
                     csv.writer(storage_file).writerow((normalized_url, code))
             self._next_id += 1
-            self._url_to_code.put(normalized_url, code)
-            self._code_to_url.put(code, normalized_url)
+            for stored_url_table, stored_code_table in (
+                (self._chaining_url_to_code, self._chaining_code_to_url),
+                (self._linear_url_to_code, self._linear_code_to_url),
+            ):
+                stored_url_table.put(normalized_url, code)
+                stored_code_table.put(code, normalized_url)
             return code
 
     def expand(self, code: str) -> str:
         with self._lock:
-            return self._code_to_url.get(code)
+            _, code_table = self.tables_for(self._strategy)
+            return code_table.get(code)
 
     def _load_saved_urls(self) -> None:
         if self._storage_path is None or not self._storage_path.exists():
@@ -90,12 +115,22 @@ class Shortener:
                     raise ValueError(
                         f"{self._storage_path}:{line_number}: invalid short code"
                     )
-                if self._url_to_code.contains(url) or self._code_to_url.contains(code):
+                if any(
+                    url_table.contains(url) or code_table.contains(code)
+                    for url_table, code_table in (
+                        (self._chaining_url_to_code, self._chaining_code_to_url),
+                        (self._linear_url_to_code, self._linear_code_to_url),
+                    )
+                ):
                     raise ValueError(
                         f"{self._storage_path}:{line_number}: duplicate URL or code"
                     )
-                self._url_to_code.put(url, code)
-                self._code_to_url.put(code, url)
+                for url_table, code_table in (
+                    (self._chaining_url_to_code, self._chaining_code_to_url),
+                    (self._linear_url_to_code, self._linear_code_to_url),
+                ):
+                    url_table.put(url, code)
+                    code_table.put(code, url)
                 self._next_id = max(self._next_id, identifier + 1)
 
     @staticmethod

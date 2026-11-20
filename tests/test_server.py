@@ -34,11 +34,41 @@ class ServerTests(unittest.TestCase):
         status, _, page = self.request("GET", "/")
         self.assertEqual(status, 200)
         self.assertIn('action="/shorten"', page)
+        self.assertIn('name="strategy"', page)
+        self.assertIn('value="chaining"', page)
+        self.assertIn('value="linear"', page)
 
         status, _, table = self.request("GET", "/table")
         self.assertEqual(status, 200)
         self.assertIn("용량", table)
+        self.assertIn("개별 체이닝", table)
         self.assertIn("버킷 0", table)
+
+    def test_selected_strategy_is_labeled_in_result_and_table(self):
+        body = urlencode(
+            {
+                "url": "https://example.com/linear-choice",
+                "strategy": "linear",
+            }
+        )
+        status, _, result = self.request(
+            "POST",
+            "/shorten",
+            body,
+            {"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        self.assertEqual(status, 200)
+        self.assertIn("사용한 해시 충돌 처리 방식: 선형 탐지", result)
+
+        status, _, table = self.request("GET", "/table?strategy=linear")
+        self.assertEqual(status, 200)
+        self.assertIn("해시 충돌 처리 방식: 선형 탐지", table)
+        self.assertIn("방문 슬롯", table)
+
+        status, _, table = self.request("GET", "/table?strategy=chaining")
+        self.assertEqual(status, 200)
+        self.assertIn("해시 충돌 처리 방식: 개별 체이닝", table)
+        self.assertIn("연결 리스트 노드", table)
 
     def test_server_defaults_to_linear_probing(self):
         with TemporaryDirectory() as directory:
