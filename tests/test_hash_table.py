@@ -18,6 +18,9 @@ class HashTableTests(unittest.TestCase):
         table.put(second_key, "second")
         self.assertEqual(table.get(first_key), "first")
         self.assertEqual(table.get(second_key), "second")
+        self.assertEqual(table.probe_count(first_key), 1)
+        self.assertEqual(table.probe_count(second_key), 2)
+        self.assertEqual(table.probe_count("missing"), 2)
         self.assertTrue(table.contains(first_key))
         self.assertFalse(table.contains("missing"))
         self.assertEqual(len(table), 2)
@@ -52,6 +55,13 @@ class HashTableTests(unittest.TestCase):
             table.put(1, "value")
         with self.assertRaises(TypeError):
             table.get(1)
+
+    def test_allows_chaining_experiment_load_factors_above_one(self):
+        table = HashTable(initial_capacity=2, max_load_factor=2)
+        for number in range(4):
+            table.put(f"key-{number}", str(number))
+        self.assertEqual(table.capacity, 2)
+        self.assertEqual(table.load_factor, 2)
 
 
 if __name__ == "__main__":
