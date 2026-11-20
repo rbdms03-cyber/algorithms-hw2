@@ -113,7 +113,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 7 0 R >> >> /Contents 6 0 R >>
 endobj
 6 0 obj
-<< /Length 4693 >>
+<< /Length 4917 >>
 stream
 BT /F1 16 Tf 60.0 800.0 Td (Hash table comparison: unsuccessful searches) Tj ET
 BT /F1 9 Tf 60.0 780.0 Td (Theory: chaining alpha; linear probing 0.5 * \(1 + 1/\(1-alpha\)^2\).) Tj ET
@@ -209,6 +209,8 @@ BT /F1 9 Tf 60.0 356.0 Td (0.5/\(1-alpha\)^2, so the cost rises sharply as free 
 BT /F1 9 Tf 60.0 339.0 Td (At alpha=0.9, miss observed \(chain/linear\) is 0.862/47.076; theory is 0.900/50.500.) Tj ET
 BT /F1 8 Tf 60.0 318.0 Td (Agent mistake: /table omitted visited slots; test_linear_table_shows_visited_slots caught it.) Tj ET
 BT /F1 8 Tf 60.0 303.0 Td (The slot-path display was restored, then the full test suite passed.) Tj ET
+BT /F1 9 Tf 60.0 280.0 Td (Reflection: comparing hits and misses showed how strongly load affects probing.) Tj ET
+BT /F1 9 Tf 60.0 265.0 Td (The fixed seeds make this run repeatable, though other key sets may differ.) Tj ET
 endstream
 endobj
 7 0 obj
@@ -223,9 +225,9 @@ xref
 0000000253 00000 n 
 0000005092 00000 n 
 0000005218 00000 n 
-0000009962 00000 n 
+0000010186 00000 n 
 trailer
 << /Size 8 /Root 1 0 R >>
 startxref
-10032
+10256
 %%EOF

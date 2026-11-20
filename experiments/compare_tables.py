@@ -227,6 +227,8 @@ def _write_pdf(path: Path, rows: list[tuple[float, ...]]) -> None:
                     f"{rows[-1][4]:.3f}/{rows[-1][8]:.3f}.", 60, 339, 9)
         + _pdf_text("Agent mistake: /table omitted visited slots; test_linear_table_shows_visited_slots caught it.", 60, 318, 8)
         + _pdf_text("The slot-path display was restored, then the full test suite passed.", 60, 303, 8)
+        + _pdf_text("Reflection: comparing hits and misses showed how strongly load affects probing.", 60, 280, 9)
+        + _pdf_text("The fixed seeds make this run repeatable, though other key sets may differ.", 60, 265, 9)
     )
     pages.extend((successful, unsuccessful))
 
