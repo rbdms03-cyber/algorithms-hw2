@@ -3,6 +3,7 @@
 import argparse
 from html import escape
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
 
 from src.shortener import Shortener
@@ -47,9 +48,14 @@ def create_server(
     host: str = "0.0.0.0",
     port: int = 8000,
     shortener: Shortener | None = None,
-    strategy: str = "chaining",
+    strategy: str = "linear",
+    storage_path: str | Path | None = None,
 ) -> ThreadingHTTPServer:
-    active_shortener = shortener if shortener is not None else Shortener(strategy)
+    active_shortener = (
+        shortener
+        if shortener is not None
+        else Shortener(strategy, storage_path=storage_path)
+    )
 
     class ShortenerHandler(BaseHTTPRequestHandler):
         def _send_html(self, status: int, content: str) -> None:
@@ -168,6 +174,9 @@ def create_server(
             except ValueError as error:
                 self._send_html(400, _page("", str(error)))
                 return
+            except OSError:
+                self._send_html(500, _page("", "단축 URL을 저장하지 못했습니다."))
+                return
 
             result = (
                 f"<p>짧은 코드: <code>{escape(code)}</code></p>"
@@ -183,9 +192,14 @@ def create_server(
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run the URL shortener web server.")
     parser.add_argument("--port", type=int, default=8000)
-    parser.add_argument("--strategy", choices=("chaining", "linear"), default="chaining")
+    parser.add_argument("--strategy", choices=("chaining", "linear"), default="linear")
+    parser.add_argument("--data-file", type=Path, default=Path("data/urls.csv"))
     arguments = parser.parse_args()
-    server = create_server(port=arguments.port, strategy=arguments.strategy)
+    server = create_server(
+        port=arguments.port,
+        strategy=arguments.strategy,
+        storage_path=arguments.data_file,
+    )
     print(f"Serving on http://0.0.0.0:{arguments.port}")
     try:
         server.serve_forever()
