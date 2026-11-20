@@ -41,11 +41,27 @@ class HashTableTests(unittest.TestCase):
         for number in range(4):
             self.assertEqual(table.get(f"key-{number}"), str(number))
 
+    def test_resize_occurs_only_after_load_factor_exceeds_threshold(self):
+        table = HashTable(initial_capacity=8)
+        for number in range(6):
+            table.put(f"key-{number}", str(number))
+
+        self.assertEqual(table.load_factor, 0.75)
+        self.assertEqual(table.capacity, 8)
+
+        table.put("key-6", "6")
+        self.assertEqual(table.capacity, 16)
+        for number in range(7):
+            self.assertEqual(table.get(f"key-{number}"), str(number))
+
     def test_empty_table_and_slots_snapshot(self):
         table = HashTable(initial_capacity=3)
         self.assertEqual(len(table), 0)
         self.assertEqual(table.load_factor, 0)
         self.assertEqual(len(table.slots()), table.capacity)
+        with self.assertRaises(KeyError):
+            table.get("missing")
+
         table.put("key", "value")
         self.assertEqual(sum(len(bucket) for bucket in table.slots()), 1)
 
