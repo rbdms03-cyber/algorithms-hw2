@@ -4,16 +4,25 @@ from urllib.parse import urlsplit
 
 from src.base62 import encode
 from src.hash_table import HashTable
+from src.linear_probing import LinearProbingHashTable
+
+Table = HashTable | LinearProbingHashTable
 
 
 class Shortener:
-    def __init__(self):
-        self._url_to_code = HashTable()
-        self._code_to_url = HashTable()
+    def __init__(self, strategy: str = "chaining"):
+        if strategy == "chaining":
+            table_factory = HashTable
+        elif strategy == "linear":
+            table_factory = LinearProbingHashTable
+        else:
+            raise ValueError("strategy must be 'chaining' or 'linear'")
+        self._url_to_code = table_factory()
+        self._code_to_url = table_factory()
         self._next_id = 1
 
     @property
-    def tables(self) -> tuple[HashTable, HashTable]:
+    def tables(self) -> tuple[Table, Table]:
         return self._url_to_code, self._code_to_url
 
     def shorten(self, url: str) -> str:

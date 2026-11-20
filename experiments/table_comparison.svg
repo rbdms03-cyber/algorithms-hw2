@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="620" viewBox="0 0 1000 620">
+<rect width="100%" height="100%" fill="white"/>
+<text x="500" y="24" text-anchor="middle" font-size="18">Hash-table search cost by load factor</text>
+<text x="275.0" y="52" text-anchor="middle" font-size="14">Successful searches</text>
+<path d="M 80 72 V 462 H 470" fill="none" stroke="#333"/>
+<text x="275.0" y="504" text-anchor="middle" font-size="12">Load factor alpha</text>
+<path d="M 76 462.0 H 470" stroke="#ddd"/>
+<text x="70" y="466.0" text-anchor="end" font-size="10">0</text>
+<path d="M 76 364.5 H 470" stroke="#ddd"/>
+<text x="70" y="368.5" text-anchor="end" font-size="10">1</text>
+<path d="M 76 267.0 H 470" stroke="#ddd"/>
+<text x="70" y="271.0" text-anchor="end" font-size="10">2</text>
+<path d="M 76 169.5 H 470" stroke="#ddd"/>
+<text x="70" y="173.5" text-anchor="end" font-size="10">4</text>
+<path d="M 76 72.0 H 470" stroke="#ddd"/>
+<text x="70" y="76.0" text-anchor="end" font-size="10">5</text>
+<text x="80.0" y="480" text-anchor="middle" font-size="9">0.1</text>
+<text x="128.8" y="480" text-anchor="middle" font-size="9">0.2</text>
+<text x="177.5" y="480" text-anchor="middle" font-size="9">0.3</text>
+<text x="226.2" y="480" text-anchor="middle" font-size="9">0.4</text>
+<text x="275.0" y="480" text-anchor="middle" font-size="9">0.5</text>
+<text x="323.8" y="480" text-anchor="middle" font-size="9">0.6</text>
+<text x="372.5" y="480" text-anchor="middle" font-size="9">0.7</text>
+<text x="421.2" y="480" text-anchor="middle" font-size="9">0.8</text>
+<text x="470.0" y="480" text-anchor="middle" font-size="9">0.9</text>
+<polyline points="80.0,380.1 128.8,377.8 177.5,372.0 226.2,368.2 275.0,366.1 323.8,362.2 372.5,358.5 421.2,354.3 470.0,349.7" fill="none" stroke="#1769aa" stroke-width="2"/>
+<polyline points="80.0,380.1 128.8,376.2 177.5,372.3 226.2,368.4 275.0,364.5 323.8,360.6 372.5,356.7 421.2,352.8 470.0,348.9" fill="none" stroke="#1769aa" stroke-width="2" stroke-dasharray="7,5"/>
+<polyline points="80.0,380.1 128.8,377.0 177.5,367.6 226.2,357.9 275.0,351.2 323.8,333.6 372.5,300.9 421.2,247.2 470.0,60.7" fill="none" stroke="#c62828" stroke-width="2"/>
+<polyline points="80.0,379.7 128.8,374.2 177.5,367.3 226.2,358.0 275.0,345.0 323.8,325.5 372.5,293.0 421.2,228.0 470.0,33.0" fill="none" stroke="#c62828" stroke-width="2" stroke-dasharray="7,5"/>
+<text x="745.0" y="52" text-anchor="middle" font-size="14">Unsuccessful searches</text>
+<path d="M 550 72 V 462 H 940" fill="none" stroke="#333"/>
+<text x="745.0" y="504" text-anchor="middle" font-size="12">Load factor alpha</text>
+<path d="M 546 462.0 H 940" stroke="#ddd"/>
+<text x="540" y="466.0" text-anchor="end" font-size="10">0</text>
+<path d="M 546 364.5 H 940" stroke="#ddd"/>
+<text x="540" y="368.5" text-anchor="end" font-size="10">13</text>
+<path d="M 546 267.0 H 940" stroke="#ddd"/>
+<text x="540" y="271.0" text-anchor="end" font-size="10">26</text>
+<path d="M 546 169.5 H 940" stroke="#ddd"/>
+<text x="540" y="173.5" text-anchor="end" font-size="10">39</text>
+<path d="M 546 72.0 H 940" stroke="#ddd"/>
+<text x="540" y="76.0" text-anchor="end" font-size="10">52</text>
+<text x="550.0" y="480" text-anchor="middle" font-size="9">0.1</text>
+<text x="598.8" y="480" text-anchor="middle" font-size="9">0.2</text>
+<text x="647.5" y="480" text-anchor="middle" font-size="9">0.3</text>
+<text x="696.2" y="480" text-anchor="middle" font-size="9">0.4</text>
+<text x="745.0" y="480" text-anchor="middle" font-size="9">0.5</text>
+<text x="793.8" y="480" text-anchor="middle" font-size="9">0.6</text>
+<text x="842.5" y="480" text-anchor="middle" font-size="9">0.7</text>
+<text x="891.2" y="480" text-anchor="middle" font-size="9">0.8</text>
+<text x="940.0" y="480" text-anchor="middle" font-size="9">0.9</text>
+<polyline points="550.0,461.3 598.8,460.4 647.5,459.6 696.2,459.3 745.0,458.5 793.8,457.7 842.5,457.1 891.2,456.3 940.0,455.5" fill="none" stroke="#1769aa" stroke-width="2"/>
+<polyline points="550.0,461.2 598.8,460.5 647.5,459.8 696.2,459.0 745.0,458.2 793.8,457.5 842.5,456.8 891.2,456.0 940.0,455.2" fill="none" stroke="#1769aa" stroke-width="2" stroke-dasharray="7,5"/>
+<polyline points="550.0,453.7 598.8,452.2 647.5,450.2 696.2,448.5 745.0,444.2 793.8,435.2 842.5,419.7 891.2,380.0 940.0,108.9" fill="none" stroke="#c62828" stroke-width="2"/>
+<polyline points="550.0,453.6 598.8,452.4 647.5,450.6 696.2,447.8 745.0,443.2 793.8,434.8 842.5,416.6 891.2,364.5 940.0,83.2" fill="none" stroke="#c62828" stroke-width="2" stroke-dasharray="7,5"/>
+<path d="M 170 560 h 28" stroke="#1769aa" stroke-width="2"/>
+<text x="204" y="564" font-size="11">Chaining measured</text>
+<path d="M 360 560 h 28" stroke="#1769aa" stroke-width="2" stroke-dasharray="7,5"/>
+<text x="394" y="564" font-size="11">Chaining theory</text>
+<path d="M 550 560 h 28" stroke="#c62828" stroke-width="2"/>
+<text x="584" y="564" font-size="11">Linear measured</text>
+<path d="M 740 560 h 28" stroke="#c62828" stroke-width="2" stroke-dasharray="7,5"/>
+<text x="774" y="564" font-size="11">Linear theory</text>
+</svg>
