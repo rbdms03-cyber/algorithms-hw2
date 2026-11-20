@@ -16,7 +16,13 @@ class ShortenerTests(unittest.TestCase):
         code = shortener.shorten("  https://example.com/path  ")
         self.assertEqual(shortener.expand(code), "https://example.com/path")
 
-        for url in ("", "ftp://example.com", "https:///missing-host", "not a URL"):
+        for url in (
+            "",
+            "ftp://example.com",
+            "https:///missing-host",
+            "not a URL",
+            "https://example.com/\r\nX-Injected: yes",
+        ):
             with self.subTest(url=url):
                 with self.assertRaises(ValueError):
                     shortener.shorten(url)

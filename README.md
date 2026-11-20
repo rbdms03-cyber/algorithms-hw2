@@ -19,8 +19,9 @@
 
 | 파일 | 하는 일 |
 | --- | --- |
-| `SPEC.md` | 명세 틀. 에이전트가 초안을 쓰고 **본인이 고칩니다** |
-| `src/` · `tests/` · `experiments/` | 비어 있습니다. 수업에서 채웁니다 |
+| `SPEC.md` | URL 단축기, 해시 테이블, 경계 사례의 명세 |
+| `src/` · `tests/` | base62, 해시 테이블, 단축기와 웹 서버 및 테스트 |
+| `experiments/` | 적재율에 따른 탐색 비용 CSV와 SVG 생성 |
 | `tools/catchup.sh` | 수업 중 놓친 단계를 따라잡는 스크립트 |
 | `Makefile` | `make test` · `make serve` · `make experiment` |
 
@@ -37,6 +38,11 @@
 | 웹 서버 (포트 8000) | `make serve` |
 | 충돌 실험 | `make experiment` |
 | 놓친 단계 따라잡기 | `sh tools/catchup.sh <단계 번호>` |
+
+`make experiment`는 `experiments/probe_results.csv`와
+`experiments/probe_experiment.svg`를 갱신합니다. Codespaces에서 휴대폰으로
+서버를 확인할 때는 포트 8000을 Public으로 설정하고, 확인을 마치면 서버를 끄고
+포트를 Private으로 되돌립니다.
 
 외부 라이브러리는 쓰지 않습니다. Python 표준 모듈만으로 충분합니다.
 
