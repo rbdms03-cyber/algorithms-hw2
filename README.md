@@ -37,8 +37,9 @@
 | 두 해시 테이블 비교 | `make compare` |
 | 놓친 단계 따라잡기 | `sh tools/catchup.sh <단계 번호>` |
 
-`make experiment`는 `experiments/probe_results.csv`와
-`experiments/probe_experiment.svg`를 갱신합니다. Codespaces에서 휴대폰으로
+`make experiment`는 고정된 4093개 버킷에 무작위 URL을 넣어 측정하고,
+`experiments/results.csv`와 `experiments/results.svg`를 갱신합니다.
+Codespaces에서 휴대폰으로
 서버를 확인할 때는 포트 8000을 Public으로 설정하고, 확인을 마치면 서버를 끄고
 포트를 Private으로 되돌립니다.
 
