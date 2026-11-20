@@ -9,7 +9,8 @@ from src.shortener import Shortener
 
 class ServerTests(unittest.TestCase):
     def setUp(self):
-        self.server = create_server("127.0.0.1", 0, Shortener())
+        self.shortener = Shortener()
+        self.server = create_server("127.0.0.1", 0, self.shortener)
         self.thread = threading.Thread(target=self.server.serve_forever)
         self.thread.start()
         self.connection = http.client.HTTPConnection(
@@ -56,17 +57,54 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(status, 404)
         self.assertIn("존재하지 않는", page)
 
-    def test_table_shows_horner_hash_calculation(self):
-        self.request(
-            "POST",
-            "/shorten",
-            urlencode({"url": "https://example.com/hash"}),
-            {"Content-Type": "application/x-www-form-urlencoded"},
+    def test_table_shows_chained_url_nodes_and_expandable_horner_steps(self):
+        table = self.shortener.tables[0]
+        first_url = "https://example.com/collision/0"
+        first_index = table.hash_index(first_url)
+        second_url = next(
+            f"https://example.com/collision/{number}"
+            for number in range(1, 1000)
+            if table.hash_index(f"https://example.com/collision/{number}")
+            == first_index
         )
+        for url in (first_url, second_url):
+            status, _, _ = self.request(
+                "POST",
+                "/shorten",
+                urlencode({"url": url}),
+                {"Content-Type": "application/x-www-form-urlencoded"},
+            )
+            self.assertEqual(status, 200)
+
         status, _, table = self.request("GET", "/table")
         self.assertEqual(status, 200)
+        self.assertIn("URL 키", table)
+        self.assertIn(first_url, table)
+        self.assertIn(second_url, table)
+        self.assertIn("짧은 코드", table)
+        self.assertIn('href="/r/1">/r/1</a>', table)
+        self.assertIn('href="/r/2">/r/2</a>', table)
+        self.assertIn("→", table)
+        self.assertIn("<details>", table)
+        self.assertIn("<summary>호너 해시 계산 과정</summary>", table)
+        self.assertIn("h0 = 0", table)
         self.assertIn("h(key) =", table)
         self.assertIn("ord(", table)
+
+    def test_table_escapes_url_keys(self):
+        url = "https://example.com/<script>"
+        status, _, _ = self.request(
+            "POST",
+            "/shorten",
+            urlencode({"url": url}),
+            {"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        self.assertEqual(status, 200)
+
+        status, _, table = self.request("GET", "/table")
+        self.assertEqual(status, 200)
+        self.assertIn("&lt;script&gt;", table)
+        self.assertNotIn("<script>", table)
 
     def test_linear_table_shows_visited_slots(self):
         server = create_server("127.0.0.1", 0, strategy="linear")

@@ -12,7 +12,14 @@ def _page(content: str, message: str = "") -> str:
     escaped_message = f"<p class=\"error\">{escape(message)}</p>" if message else ""
     return (
         "<!doctype html><html lang=\"ko\"><meta charset=\"utf-8\">"
-        "<title>URL 단축기</title><body>"
+        "<title>URL 단축기</title>"
+        "<style>"
+        "body{font-family:sans-serif;max-width:70rem;margin:2rem auto;padding:0 1rem}"
+        ".chain{display:flex;align-items:center;flex-wrap:wrap;gap:.5rem}"
+        ".chain-node{border:1px solid #888;border-radius:.4rem;padding:.75rem}"
+        ".chain-arrow{font-size:1.5rem}"
+        "code{overflow-wrap:anywhere}"
+        "</style><body>"
         "<h1>URL 단축기</h1>"
         f"{escaped_message}{content}"
         '<p><a href="/table">해시 테이블 보기</a></p>'
@@ -54,44 +61,57 @@ def create_server(
             self.wfile.write(body)
 
         def _table_page(self) -> str:
-            sections = []
-            for table_number, table in enumerate(active_shortener.tables, start=1):
-                bucket_name = "슬롯" if table.strategy_name == "선형 탐지" else "버킷"
-                rows = [
-                    f"<h2>테이블 {table_number} ({escape(table.strategy_name)})</h2>"
-                    f"<p>용량: {table.capacity}, 항목 수: {len(table)}, "
-                    f"적재율: {table.load_factor:.3f}</p>"
-                ]
-                for bucket_index, bucket in enumerate(table.slots()):
-                    rows.append(f"<h3>{bucket_name} {bucket_index}</h3>")
-                    if not bucket:
-                        rows.append("<p>(비어 있음)</p>")
-                        continue
-                    rows.append("<ol>")
-                    for position, (key, value) in enumerate(bucket, start=1):
-                        escaped_key = escape(key)
-                        escaped_value = escape(value)
-                        if bucket_name == "슬롯":
-                            visited = " → ".join(
-                                str(index) for index in table.probe_path(key)
-                            )
-                            search_detail = f"방문 슬롯 {visited}"
-                        else:
-                            visited_nodes = " → ".join(
-                                escape(node_key)
-                                for node_key, _ in bucket[:position]
-                            )
-                            search_detail = f"방문 노드 {visited_nodes}"
-                        rows.append(
-                            "<li>"
-                            f"키 <code>{escaped_key}</code>, 값 <code>{escaped_value}</code>; "
-                            f"{search_detail}; "
-                            f"<code>{escape(_hash_explanation(key, table.capacity))}</code>"
-                            "</li>"
+            table = active_shortener.tables[0]
+            bucket_name = "슬롯" if table.strategy_name == "선형 탐지" else "버킷"
+            sections = [
+                "<p>버킷의 연결 리스트 노드를 화살표로 잇고, 각 노드의 해시 과정을 "
+                "펼쳐 볼 수 있습니다.</p>"
+                f"<h2>URL → 짧은 코드 ({escape(table.strategy_name)})</h2>"
+                f"<p>용량: {table.capacity}, 항목 수: {len(table)}, "
+                f"적재율: {table.load_factor:.3f}</p>"
+            ]
+            for bucket_index, bucket in enumerate(table.slots()):
+                sections.append(
+                    f'<section class="bucket"><h3>{bucket_name} {bucket_index}</h3>'
+                )
+                if not bucket:
+                    sections.append("<p>(비어 있음)</p></section>")
+                    continue
+
+                sections.append('<div class="chain">')
+                for position, (url, code) in enumerate(bucket):
+                    if position:
+                        sections.append(
+                            '<span class="chain-arrow" aria-label="다음 노드">→</span>'
                         )
-                    rows.append("</ol>")
-                sections.append("".join(rows))
-            return _page("".join(sections), "충돌 처리 방식과 탐색 근거")
+                    escaped_url = escape(url)
+                    escaped_code = escape(code)
+                    escaped_href = escape(f"/r/{code}", quote=True)
+                    hash_steps = escape(_hash_explanation(url, table.capacity))
+                    if table.strategy_name == "선형 탐지":
+                        visited = " → ".join(
+                            str(slot) for slot in table.probe_path(url)
+                        )
+                        search_detail = f"<p>방문 슬롯: {visited}</p>"
+                    else:
+                        search_detail = (
+                            f"<p>연결 리스트 노드: {position + 1}</p>"
+                        )
+                    sections.append(
+                        '<article class="chain-node">'
+                        f"<p>URL 키: <code>{escaped_url}</code></p>"
+                        f"<p>짧은 코드: <code>{escaped_code}</code></p>"
+                        f'<p>짧은 링크: <a href="{escaped_href}">'
+                        f"{escaped_href}</a></p>"
+                        f"{search_detail}"
+                        "<details>"
+                        "<summary>호너 해시 계산 과정</summary>"
+                        f"<p><code>{hash_steps}</code></p>"
+                        "</details>"
+                        "</article>"
+                    )
+                sections.append("</div></section>")
+            return _page("".join(sections))
 
         def do_GET(self) -> None:
             path = urlsplit(self.path).path
